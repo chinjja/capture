@@ -13,6 +13,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -124,6 +128,7 @@ public class ScreenCapture {
 		});
 		window.setAlwaysOnTop(true);
 		window.setResizable(false);
+		window.setFocusableWindowState(false);
 		
 		JButton capture = new JButton("Capture");
 		capture.setIcon(new ImageIcon(getClass().getResource("capture.png")));
@@ -132,7 +137,7 @@ public class ScreenCapture {
 		capture.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				window.setVisible(false);
+				prepare();
 			}
 		});
 		JButton close = new JButton("Close");
@@ -174,7 +179,32 @@ public class ScreenCapture {
 		filename.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				window.setVisible(false);
+				prepare();
+			}
+		});
+		filename.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				window.setFocusableWindowState(true);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						filename.requestFocus();
+					}
+				});
+			}
+		});
+		filename.addFocusListener(new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent e) {
+				window.setFocusableWindowState(false);
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				filename.selectAll();
 			}
 		});
 		
@@ -186,6 +216,10 @@ public class ScreenCapture {
 		updateFilename();
 		updateDirectory();
 		window.setVisible(true);
+	}
+	
+	private void prepare() {
+		window.setVisible(false);
 	}
 	
 	private void updateLocation(Component component) {
@@ -213,8 +247,6 @@ public class ScreenCapture {
 	private void updateFilename() {
 		if(window == null) return;
 		this.filename.setText(generateFile().getName());
-		this.filename.requestFocus();
-		this.filename.selectAll();
 	}
 	
 	private void updateDirectory() {
